@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t alinpetcu/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run alinpetcu/react-test npm test -- --coverage
+
+
+after_success:
+  - docker build -t alinpetcu/multi-client ./client
+  - docker build -t alinpetcu/multi-nginx ./nginx
+  - docker build -t alinpetcu/multi-worker ./worker
+  - docker build -t alinpetcu/multi-server ./server
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+
+  - docker push alinpetcu/multi-client
+  - docker push alinpetcu/multi-nginx
+  - docker push alinpetcu/multi-worker
+  - docker push alinpetcu/multi-server
